@@ -1,0 +1,125 @@
+- hosts: database
+  become: yes
+  vars:
+    db_name: "validator_backend"
+    db_user: "root"
+    db_password: "root"
+
+  tasks:
+    - name: Install PostgreSQL 15 on Amazon Linux 2023
+      dnf:
+        name:
+          - postgresql15-server
+          - postgresql15
+          - python3-psycopg2
+        state: present
+        update_cache: yes
+
+    - name: Initialize PostgreSQL Database
+      command: /usr/bin/postgresql-setup --initdb
+      args:
+        creates: /var/lib/pgsql/data/postgresql.conf
+
+    - name: Start and Enable PostgreSQL Service
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Create PostgreSQL Database
+      become_user: postgres
+      postgresql_db:
+        name: "{{ db_name }}"
+        encoding: "UTF8"
+        state: present
+
+    - name: Create PostgreSQL User
+      become_user: postgres
+      postgresql_user:
+        db: "{{ db_name }}"
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        priv: "ALL"
+        state: present
+
+    - name: Configure PostgreSQL to Allow Remote Connections
+      lineinfile:
+        path: /var/lib/pgsql/data/postgresql.conf
+        regexp: '^#?listen_addresses'
+        line: "listen_addresses = '*'"
+      notify: restart postgresql
+
+    - name: Allow PostgreSQL Access for User
+      lineinfile:
+        path: /var/lib/pgsql/data/pg_hba.conf
+        line: "host all all 0.0.0.0/0 md5"
+      notify: restart postgresql
+
+  handlers:
+    - name: restart postgresql
+      service:
+        name: postgresql
+        state: restarted
+- hosts: database
+  become: yes
+  vars:
+    db_name: "validator_backend"
+    db_user: "root"
+    db_password: "root"
+
+  tasks:
+    - name: Install PostgreSQL 15 on Amazon Linux 2023
+      dnf:
+        name:
+          - postgresql15-server
+          - postgresql15
+          - python3-psycopg2
+        state: present
+        update_cache: yes
+
+    - name: Initialize PostgreSQL Database
+      command: /usr/bin/postgresql-setup --initdb
+      args:
+        creates: /var/lib/pgsql/data/postgresql.conf
+
+    - name: Start and Enable PostgreSQL Service
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Create PostgreSQL Database
+      become_user: postgres
+      postgresql_db:
+        name: "{{ db_name }}"
+        encoding: "UTF8"
+        state: present
+
+    - name: Create PostgreSQL User
+      become_user: postgres
+      postgresql_user:
+        db: "{{ db_name }}"
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        priv: "ALL"
+        state: present
+
+    - name: Configure PostgreSQL to Allow Remote Connections
+      lineinfile:
+        path: /var/lib/pgsql/data/postgresql.conf
+        regexp: '^#?listen_addresses'
+        line: "listen_addresses = '*'"
+      notify: restart postgresql
+
+    - name: Allow PostgreSQL Access for User
+      lineinfile:
+        path: /var/lib/pgsql/data/pg_hba.conf
+        line: "host all all 0.0.0.0/0 md5"
+      notify: restart postgresql
+
+  handlers:
+    - name: restart postgresql
+      service:
+        name: postgresql
+        state: restarted
+

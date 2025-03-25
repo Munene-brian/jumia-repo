@@ -1,0 +1,33 @@
+applicationName: jumia-validator
+pullSecret: registry
+
+secrets:
+  pullSecret:
+    name: registry
+
+imagePullPolicy: IfNotPresent
+
+database:
+  driver: org.postgresql.Driver
+  url: 56.228.16.155
+  port: 5432
+  name: validator_backend
+  username: root
+  password: root
+  
+  
+backend:
+  hostName: jumia-backend.test-k8.jumia.co.ke  
+  imageName:  992122884453.dkr.ecr.us-east-1.amazonaws.com/validator-backend
+  imageTag: latest
+  serviceName: backend-service
+  servicePort: 8080
+  targetPort: 8080
+
+portal:
+  hostName:  jumia-frontend.test-k8.jumia.co.ke  
+  imageName: 992122884453.dkr.ecr.us-east-1.amazonaws.com/validator-frontend
+  imageTag: latest
+  serviceName: jumia-portal
+  servicePort: 8081
+  targetPort: 8081

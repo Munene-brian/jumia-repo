@@ -1,0 +1,33 @@
+- hosts: app_server
+  become: yes
+  tasks:
+  
+    - name: Install Required Packages (Ubuntu)
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - docker.io
+        - awscli
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker on Amazon Linux 2023
+      dnf:
+        name: docker
+        state: present
+      when: ansible_distribution == "Amazon" and ansible_distribution_version.startswith("2023")
+
+    - name: Install Docker Compose on Amazon Linux 2023 (Manually)
+      get_url:
+        url: "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64"
+        dest: "/usr/local/bin/docker-compose"
+        mode: '0755'
+      when: ansible_distribution == "Amazon" and ansible_distribution_version.startswith("2023")
+
+    - name: Enable and Start Docker Service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+

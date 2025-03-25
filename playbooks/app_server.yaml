@@ -1,0 +1,45 @@
+- hosts: app_server
+  become: yes
+  tasks:
+
+    - name: Install Docker on Amazon Linux 2023
+      dnf:
+        name: docker
+        state: present
+      when: ansible_distribution == "Amazon" and ansible_distribution_version.startswith("2023")
+
+    - name: Install Docker Compose on Amazon Linux 2023 (Manually)
+      get_url:
+        url: "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64"
+        dest: "/usr/local/bin/docker-compose"
+        mode: '0755'
+      when: ansible_distribution == "Amazon" and ansible_distribution_version.startswith("2023")
+
+    - name: Ensure Docker Service is Running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+#    - name: Authenticate to AWS ECR
+#      shell: |
+#        aws ecr get-login-password --region us-east-1 | 
+#        docker login --username AWS --password-stdin 992122884453.dkr.ecr.us-east-1.amazonaws.com
+#      args:
+#        executable: /bin/bash
+
+    - name: Create Directory for Microservices
+      file:
+        path: /home/ec2-user/microservices
+        state: directory
+
+    - name: Copy Docker Compose File
+      copy:
+        src: templates/docker-compose.yml
+        dest: /home/ec2-user/microservices/docker-compose.yml
+
+    - name: Deploy Microservices Using Docker Compose
+      command: docker-compose -f /home/ec2-user/microservices/docker-compose.yml up -d
+      args:
+        chdir: /home/ec2-user/microservices
+

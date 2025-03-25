@@ -1,0 +1,45 @@
+- hosts: loadbalance
+  become: yes
+  tasks:
+    - name: Install Nginx on Amazon Linux
+      dnf:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Start and Enable Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Install Firewalld and Python Module
+      dnf:
+        name:
+          - firewalld
+          - python3-firewall
+        state: present
+        update_cache: yes
+
+    - name: Start and Enable Firewalld
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Allow HTTP and HTTPS through firewall (Amazon Linux)
+      firewalld:
+        service: "{{ item }}"
+        permanent: yes
+        state: enabled
+      with_items:
+        - http
+        - https
+      when: ansible_distribution == "Amazon"
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+

@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: {{ .Values.backend.serviceName }}
+  name: {{ .Values.backend.serviceName }}
+spec:
+  ports:
+    - port: {{ .Values.backend.servicePort }}
+      targetPort: {{ .Values.backend.servicePort }}
+  selector:
+    service: {{ .Values.backend.serviceName }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: {{ .Values.backend.serviceName }}
+  name: {{ .Values.backend.serviceName }}
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      service: {{ .Values.backend.serviceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.applicationName }}
+        component: {{ .Values.backend.serviceName }}
+        service: {{ .Values.backend.serviceName }}
+    spec:
+      containers:
+        - name: {{ .Values.backend.serviceName }}
+          image: "{{ .Values.backend.imageName }}:{{ .Values.backend.imageTag }}"
+          command: ["java"]
+          args:  ["-jar", "app.jar", "--spring.profiles.active=default"]
+          ports:
+            - containerPort: {{ .Values.backend.servicePort }}
+          imagePullPolicy: {{.Values.imagePullPolicy}}  
+      imagePullSecrets:
+        - name: {{ .Values.pullSecret }}

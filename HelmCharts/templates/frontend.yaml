@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: {{ .Values.portal.serviceName }}
+  name: {{ .Values.portal.serviceName }}
+spec:
+  ports:
+    - port: {{ .Values.portal.servicePort }}
+      targetPort: {{ .Values.portal.servicePort }}
+  selector:
+    service: {{ .Values.portal.serviceName }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: {{ .Values.portal.serviceName }}
+  name: {{ .Values.portal.serviceName }}
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      service: {{ .Values.portal.serviceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.applicationName }}
+        component: {{ .Values.portal.serviceName }}
+        service: {{ .Values.portal.serviceName }}
+    spec:
+      containers:
+        - image: "{{ .Values.portal.imageName }}:{{ .Values.portal.imageTag }}"
+          name: {{ .Values.portal.serviceName }}
+          ports:
+            - containerPort: {{ .Values.portal.targetPort }}
+
+          imagePullPolicy: {{.Values.imagePullPolicy}}  
+      imagePullSecrets:
+        - name: {{ .Values.pullSecret }}

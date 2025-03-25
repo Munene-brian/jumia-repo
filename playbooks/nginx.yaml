@@ -1,0 +1,76 @@
+- hosts: loadbalance
+  become: yes
+  vars:
+    backend_servers:
+      - "server 51.21.128.133:8080;"
+      - "server 51.21.128.133:8081;"
+
+  tasks:
+    - name: Install Nginx on Amazon Linux
+      dnf:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Start and Enable Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Configure Nginx as Load Balancer
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      notify: restart nginx
+
+    - name: Allow HTTP and HTTPS through firewall (Amazon Linux)
+      firewalld:
+        service: "{{ item }}"
+        permanent: yes
+        state: enabled
+      with_items:
+        - http
+        - https
+      when: ansible_distribution == "Amazon"
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+  tasks:
+    - name: Install Nginx on Amazon Linux
+      dnf:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Start and Enable Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Configure Nginx as Load Balancer
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      notify: restart nginx
+
+    - name: Allow HTTP and HTTPS through firewall (Amazon Linux)
+      firewalld:
+        service: "{{ item }}"
+        permanent: yes
+        state: enabled
+      with_items:
+        - http
+        - https
+      when: ansible_distribution == "Amazon"
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+
